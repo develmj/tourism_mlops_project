@@ -7,25 +7,33 @@ on:
 jobs:
   train-model:
     runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install ML Dependencies
+    - name: Show repo contents (debug)
       run: |
-        pip install pandas numpy scikit-learn joblib datasets huggingface_hub
+        pwd
+        ls
+        echo "Contents of src/:"
+        ls src || echo "src directory NOT found"
+        echo "Contents of models/:"
+        ls models || echo "models directory NOT found"
 
-    - name: Authenticate to Hugging Face
-      env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    - name: Install dependencies
       run: |
-        huggingface-cli login --token "$HF_TOKEN"
+        python -m pip install --upgrade pip
+        python -m pip install pandas numpy scikit-learn joblib datasets huggingface_hub
 
-    - name: Run Training Pipeline
+    - name: Run training pipeline
       run: |
         python src/train_pipeline.py
 
@@ -33,5 +41,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: model-artifacts
-        path: tourism_mlops_project/models/
-
+        path: models/
